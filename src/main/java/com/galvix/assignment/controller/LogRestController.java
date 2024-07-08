@@ -20,8 +20,10 @@ public class LogRestController {
 
     @GetMapping
     public List<Log> getLogs(
-            @RequestParam(value = "serviceName",required = false) String serviceName
+            @RequestParam(value = "serviceName[is]", required = false) String serviceNameIs,
+            @RequestParam(value = "serviceName[isNot]", required = false) String serviceNameIsNot,
+            @RequestParam(value = "serviceName[isAnyOf]", required = false) String serviceNameIsAnyOf
     ) {
-        return logService.getLogsWithFilter(serviceName);
+        return logService.getLogsWithFilter(serviceNameIs,serviceNameIsNot, serviceNameIsAnyOf);
     }
 }

@@ -5,10 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class LogFilter {
-    String ServiceName;
+    String serviceNameIs;
+    String serviceNameIsNot;
+    List<String> serviceNameIsAnyOf;
 }

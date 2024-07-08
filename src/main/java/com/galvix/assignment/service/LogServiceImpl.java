@@ -7,6 +7,7 @@ import com.galvix.assignment.filter.LogFilter;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -20,9 +21,13 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public List<Log> getLogsWithFilter(String serviceName) {
+    public List<Log> getLogsWithFilter(String serviceNameIs, String serviceNameIsNot, String serviceNameIsAnyOf) {
         LogFilter logFilter = new LogFilter();
-        logFilter.setServiceName(serviceName);
+        logFilter.setServiceNameIs(serviceNameIs);
+        logFilter.setServiceNameIsNot(serviceNameIsNot);
+        if(serviceNameIsAnyOf != null) {
+            logFilter.setServiceNameIsAnyOf(Arrays.asList(serviceNameIsAnyOf.split(",")));
+        }
         return logFilterRepository.filterLogs(logFilter);
     }
 

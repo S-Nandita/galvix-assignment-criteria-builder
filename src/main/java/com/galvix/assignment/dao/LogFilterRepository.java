@@ -9,8 +9,10 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
+import org.apache.catalina.valves.rewrite.InternalRewriteMap;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -22,15 +24,23 @@ public class LogFilterRepository {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Log> criteriaQuery = criteriaBuilder.createQuery(Log.class);
         Root<Log> root = criteriaQuery.from(Log.class);
-        Predicate equalPredicate = null;
-        if(logFilter.getServiceName() != null) {
-            equalPredicate = criteriaBuilder.equal(root.get("serviceName"),logFilter.getServiceName());
+        List<Predicate> predicates = new ArrayList<>();
+        if(logFilter.getServiceNameIs() != null) {
+            Predicate equalPredicate = criteriaBuilder.equal(root.get("serviceName"),logFilter.getServiceNameIs());
+            predicates.add(equalPredicate);
         }
-        if(equalPredicate != null) {
-            criteriaQuery.where(equalPredicate);
-            TypedQuery<Log> typedQuery = entityManager.createQuery(criteriaQuery);
-            return typedQuery.getResultList();
+
+        if(logFilter.getServiceNameIsNot() != null) {
+            Predicate notEqualPredicate = criteriaBuilder.notEqual(root.get("serviceName"),logFilter.getServiceNameIsNot());
+            predicates.add(notEqualPredicate);
         }
+
+        if(logFilter.getServiceNameIsAnyOf() != null && !logFilter.getServiceNameIsAnyOf().isEmpty()) {
+            Predicate inPredicate = root.get("serviceName").in(logFilter.getServiceNameIsAnyOf());
+            predicates.add(inPredicate);
+        }
+        Predicate finalPredicate = criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        criteriaQuery.where(finalPredicate);
         TypedQuery<Log> typedQuery = entityManager.createQuery(criteriaQuery);
         return typedQuery.getResultList();
     }
