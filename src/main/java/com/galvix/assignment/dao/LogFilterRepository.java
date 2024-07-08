@@ -39,7 +39,11 @@ public class LogFilterRepository {
             Predicate inPredicate = root.get("serviceName").in(logFilter.getServiceNameIsAnyOf());
             predicates.add(inPredicate);
         }
-        Predicate finalPredicate = criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        if(logFilter.getStatusCode() != 0) {
+            Predicate statusCodePredicate = criteriaBuilder.equal(root.get("statusCode"),logFilter.getStatusCode());
+            predicates.add(statusCodePredicate);
+        }
+        Predicate finalPredicate = criteriaBuilder.or(predicates.toArray(new Predicate[0]));
         criteriaQuery.where(finalPredicate);
         TypedQuery<Log> typedQuery = entityManager.createQuery(criteriaQuery);
         return typedQuery.getResultList();

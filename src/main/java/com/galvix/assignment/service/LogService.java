@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface LogService {
     void saveLog(Log log);
-    List<Log> getLogsWithFilter(String serviceNameIs,String serviceNameIsNot,String serviceNameIsAnyOf);
+    List<Log> getLogsWithFilter(String serviceNameIs,String serviceNameIsNot,String serviceNameIsAnyOf,int statusCode);
 }

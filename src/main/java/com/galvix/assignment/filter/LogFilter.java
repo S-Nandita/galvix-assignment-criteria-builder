@@ -15,4 +15,5 @@ public class LogFilter {
     String serviceNameIs;
     String serviceNameIsNot;
     List<String> serviceNameIsAnyOf;
+    int statusCode;
 }

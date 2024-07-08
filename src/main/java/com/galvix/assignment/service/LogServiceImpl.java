@@ -21,13 +21,14 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public List<Log> getLogsWithFilter(String serviceNameIs, String serviceNameIsNot, String serviceNameIsAnyOf) {
+    public List<Log> getLogsWithFilter(String serviceNameIs, String serviceNameIsNot, String serviceNameIsAnyOf, int statusCode) {
         LogFilter logFilter = new LogFilter();
         logFilter.setServiceNameIs(serviceNameIs);
         logFilter.setServiceNameIsNot(serviceNameIsNot);
         if(serviceNameIsAnyOf != null) {
             logFilter.setServiceNameIsAnyOf(Arrays.asList(serviceNameIsAnyOf.split(",")));
         }
+        logFilter.setStatusCode(statusCode);
         return logFilterRepository.filterLogs(logFilter);
     }
 
