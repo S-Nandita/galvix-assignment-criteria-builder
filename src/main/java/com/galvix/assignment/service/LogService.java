@@ -1,10 +1,12 @@
 package com.galvix.assignment.service;
 
 import com.galvix.assignment.entity.Log;
+import com.galvix.assignment.filter.LogFilter;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
+import java.util.Map;
 
 public interface LogService {
-    void saveLog(Log log);
-    List<Log> getLogsWithFilter(String serviceNameIs,String serviceNameIsNot,String serviceNameIsAnyOf,int statusCode);
+    Page<Log> getLogsWithFilter(LogFilter logFilter, Integer pageNumber, Integer pageSize);
 }
