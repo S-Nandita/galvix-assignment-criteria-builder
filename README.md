@@ -25,15 +25,15 @@ Install the Lombok plugin in IntelliJ IDEA:
 Springdoc OpenAPI is used to generate interactive API documentation. For more details and configurations, visit the [Springdoc OpenAPI documentation](https://springdoc.org/) and refer to the "Getting Started" section.
 
 ## Database Setup
-1. ### Setting Up the Database
+
+### 1. Setting Up the Database
    #### PostgreSQL
 If you're using PostgreSQL, you can create the `logs` database by running the following SQL command:
 
 ```sql
 CREATE DATABASE logs;
 ```
-
-2. ### Creating the Logs Table
+### 2. Creating the Logs Table
 To set up the `logs` table in your database, run the following SQL command:
 
 ```sql
@@ -45,7 +45,7 @@ CREATE TABLE logs (
 );
 ```
 
-3. ### Populating the Logs Table
+### 3. Populating the Logs Table
 To insert sample data into the `logs` table, use the following SQL command:
 
 ```sql
@@ -101,10 +101,10 @@ Fetch logs with optional filters and pagination.
 - `size` (optional): Number of records per page (default is 10).
 
 ### Example Requests: 
-`/logs?serviceNames[is]=Invoice`
-`/logs?serviceNames[isAnyOf]=Invoice,User`
-`/logs?startDate[onOrAfter]=2024-01-01`
-`/logs?startDate[onOrAfter]=2024-01-01&endDate[onOrBefore]=2024-03-30`
+/logs?serviceNames[is]=Invoice
+/logs?serviceNames[isAnyOf]=Invoice,User
+/logs?startDate[onOrAfter]=2024-01-01
+/logs?startDate[onOrAfter]=2024-01-01&endDate[onOrBefore]=2024-03-30
 
 ## Author
 Developed by S Nandita, currently working at Mountblue Technologies.
