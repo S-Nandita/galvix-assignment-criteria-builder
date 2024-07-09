@@ -5,6 +5,7 @@ This project is a Spring Boot application designed to manage and display logs fr
 - Java 21
 - Maven
 - PostgreSQL
+- IntelliJ IDEA
 
 ### Dependencies Used
 - Spring Boot 3.3.1
