@@ -21,9 +21,6 @@ Install the Lombok plugin in IntelliJ IDEA:
 3. Search for Lombok and click Install.
 4. Restart IntelliJ IDEA.
 
-### Springdoc OpenAPI
-Springdoc OpenAPI is used to generate interactive API documentation. For more details and configurations, visit the [Springdoc OpenAPI documentation](https://springdoc.org/) and refer to the "Getting Started" section.
-
 ## Database Setup
 
 ### 1. Setting Up the Database
@@ -84,6 +81,7 @@ spring.datasource.password= your_password
 
 ## API Documentation
 The API provides an endpoint to filter and paginate logs. Swagger UI is integrated to facilitate API exploration.
+After running the project from IntelliJ, access the Swagger API using the following URL.
 
 - ` Swagger UI: http://localhost:8080/swagger-ui.html`
 
@@ -99,12 +97,3 @@ Fetch logs with optional filters and pagination.
 - `endDate` (optional): End date to filter by (format: `YYYY-MM-DD`).
 - `page` (optional): Page number for pagination (default is 0).
 - `size` (optional): Number of records per page (default is 10).
-
-### Example Requests: 
-/logs?serviceNames[is]=Invoice
-/logs?serviceNames[isAnyOf]=Invoice,User
-/logs?startDate[onOrAfter]=2024-01-01
-/logs?startDate[onOrAfter]=2024-01-01&endDate[onOrBefore]=2024-03-30
-
-## Author
-Developed by S Nandita, currently working at Mountblue Technologies.
