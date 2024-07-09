@@ -1,4 +1,4 @@
-package com.galvix.assignment;
+package com.galvix.assignment.pagination;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

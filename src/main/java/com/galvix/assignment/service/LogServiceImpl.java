@@ -1,6 +1,6 @@
 package com.galvix.assignment.service;
 
-import com.galvix.assignment.Pagination;
+import com.galvix.assignment.pagination.Pagination;
 import com.galvix.assignment.dto.LogResponse;
 import com.galvix.assignment.repository.LogFilterRepository;
 import com.galvix.assignment.entity.Log;

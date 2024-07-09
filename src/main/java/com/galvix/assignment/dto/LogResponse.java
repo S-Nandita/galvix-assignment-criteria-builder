@@ -1,6 +1,6 @@
 package com.galvix.assignment.dto;
 
-import com.galvix.assignment.Pagination;
+import com.galvix.assignment.pagination.Pagination;
 import com.galvix.assignment.entity.Log;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
