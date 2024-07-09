@@ -1,9 +1,10 @@
 package com.galvix.assignment.controller;
 
-import com.galvix.assignment.entity.Log;
+import com.galvix.assignment.dto.LogResponse;
 import com.galvix.assignment.service.LogService;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.galvix.assignment.operator.StartDateOperator;
 import com.galvix.assignment.operator.EndDateOperator;
@@ -18,7 +19,7 @@ public class LogRestController {
     private LogService logService;
 
     @GetMapping
-    public Page<Log> getLogs(
+    public ResponseEntity<LogResponse> getLogs(
             @RequestParam(value = "serviceName",required = false) ServiceNameOperator serviceNameOperator,
             @RequestParam(required = false) String serviceNames,
             @RequestParam(required = false) Integer statusCode,
@@ -30,7 +31,7 @@ public class LogRestController {
             @RequestParam(defaultValue = "10", required = false) Integer pageSize
             ) {
 
-        return logService.getLogsWithFilter(serviceNameOperator,serviceNames,statusCode,
-                startDateOperator,startDate,endDateOperator,endDate,pageNumber,pageSize);
+        return new ResponseEntity<>(logService.getLogsWithFilter(serviceNameOperator,serviceNames,statusCode,
+                startDateOperator,startDate,endDateOperator,endDate,pageNumber,pageSize), HttpStatus.OK);
     }
 }

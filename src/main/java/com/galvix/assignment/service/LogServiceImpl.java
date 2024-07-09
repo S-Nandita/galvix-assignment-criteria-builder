@@ -1,5 +1,7 @@
 package com.galvix.assignment.service;
 
+import com.galvix.assignment.Pagination;
+import com.galvix.assignment.dto.LogResponse;
 import com.galvix.assignment.repository.LogFilterRepository;
 import com.galvix.assignment.entity.Log;
 import com.galvix.assignment.operator.EndDateOperator;
@@ -7,11 +9,11 @@ import com.galvix.assignment.operator.ServiceNameOperator;
 import com.galvix.assignment.operator.StartDateOperator;
 import com.galvix.assignment.filter.LogFilter;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -19,12 +21,13 @@ public class LogServiceImpl implements LogService {
     private LogFilterRepository logFilterRepository;
 
     @Override
-    public Page<Log> getLogsWithFilter(ServiceNameOperator serviceNameOperator, String serviceNames,
+    public LogResponse getLogsWithFilter(ServiceNameOperator serviceNameOperator, String serviceNames,
                                        Integer statusCode, StartDateOperator startDateOperator, LocalDate startDate,
                                        EndDateOperator endDateOperator, LocalDate endDate, Integer pageNumber, Integer pageSize) {
 
         LogFilter logFilter = getLogFilter(serviceNameOperator, serviceNames, statusCode, startDateOperator, startDate, endDateOperator, endDate);
-        return logFilterRepository.filterLogs(logFilter, pageNumber, pageSize);
+        List<Log> logs = logFilterRepository.filterLogs(logFilter,pageNumber,pageSize).getContent();
+        return getLogResponse(logs,pageNumber,pageSize);
     }
 
     private LogFilter getLogFilter(ServiceNameOperator serviceNameOperator, String serviceNames,
@@ -93,5 +96,14 @@ public class LogServiceImpl implements LogService {
             }
         }
         return logFilter;
+    }
+    public LogResponse getLogResponse(List<Log> logs, int pageNumber,int pageSize) {
+        Pagination pagination = new Pagination();
+        pagination.setCurrentPage(pageNumber);
+        pagination.setPageSize(pageSize);
+        LogResponse logResponse = new LogResponse();
+        logResponse.setLogs(logs);
+        logResponse.setPagination(pagination);
+        return logResponse;
     }
 }
