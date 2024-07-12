@@ -1,19 +1,17 @@
 package com.galvix.assignment.service;
 
-import com.galvix.assignment.pagination.Pagination;
 import com.galvix.assignment.dto.LogResponse;
+import com.galvix.assignment.pagination.Pagination;
 import com.galvix.assignment.repository.LogFilterRepository;
 import com.galvix.assignment.entity.Log;
-import com.galvix.assignment.operator.EndDateOperator;
-import com.galvix.assignment.operator.ServiceNameOperator;
-import com.galvix.assignment.operator.StartDateOperator;
 import com.galvix.assignment.filter.LogFilter;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @AllArgsConstructor
@@ -21,82 +19,50 @@ public class LogServiceImpl implements LogService {
     private LogFilterRepository logFilterRepository;
 
     @Override
-    public LogResponse getLogsWithFilter(ServiceNameOperator serviceNameOperator, String serviceNames,
-                                       Integer statusCode, StartDateOperator startDateOperator, LocalDate startDate,
-                                       EndDateOperator endDateOperator, LocalDate endDate, Integer pageNumber, Integer pageSize) {
+    public LogResponse getLogsWithFilter(Map<String,String> queryParams) {
+        List<LogFilter> filters = new ArrayList<>();
+        AtomicInteger pageNumber = new AtomicInteger(0);
+        AtomicInteger pageSize = new AtomicInteger(10);
+        queryParams.forEach((key,value)-> {
+            String operator = getOperatorFomKey(key);
 
-        LogFilter logFilter = getLogFilter(serviceNameOperator, serviceNames, statusCode, startDateOperator, startDate, endDateOperator, endDate);
-        List<Log> logs = logFilterRepository.filterLogs(logFilter,pageNumber,pageSize).getContent();
-        return getLogResponse(logs,pageNumber,pageSize);
+            if(key.startsWith("serviceNames")) {
+                filters.add(new LogFilter("serviceNames",operator,value));
+            } else if(key.equals("statusCode")) {
+                filters.add(new LogFilter("statusCode",operator,value));
+            } else if (key.startsWith("startDate")) {
+                filters.add(new LogFilter("startDate",operator,value));
+            } else if (key.startsWith("endDate")) {
+                filters.add(new LogFilter("endDate",operator,value));
+            } else if (key.startsWith("pageNumber")) {
+                pageNumber.set(Integer.parseInt(value));
+            } else if (key.startsWith("pageSize")) {
+                pageSize.set(Integer.parseInt(value));
+            }
+        });
+        List<Log> logs =  logFilterRepository.filterLogs(filters,pageNumber.intValue(),pageSize.intValue()).getContent();
+        return getLogResponse(logs,pageNumber.intValue(),pageSize.intValue());
     }
 
-    private LogFilter getLogFilter(ServiceNameOperator serviceNameOperator, String serviceNames,
-                                   Integer statusCode, StartDateOperator startDateOperator, LocalDate startDate,
-                                   EndDateOperator endDateOperator, LocalDate endDate) {
-
-        LogFilter logFilter = new LogFilter();
-
-        if (serviceNameOperator != null && serviceNames != null) {
-            switch (serviceNameOperator) {
-                case IS:
-                    logFilter.setServiceNameIs(serviceNames);
-                    break;
-                case IS_NOT:
-                    logFilter.setServiceNameIsNot(serviceNames);
-                    break;
-                case IS_ANY_OF:
-                    logFilter.setServiceNameIsAnyOf(Arrays.asList(serviceNames.split(",")));
-            }
+    private String getOperatorFomKey(String key) {
+        if(key.endsWith("[is]")) {
+            return "IS";
+        } else if(key.endsWith("[isNot]")) {
+            return "IS_NOT";
+        } else if (key.endsWith("[isAnyOf]")) {
+            return "IS_ANY_OF";
+        } else if (key.endsWith("[isAfter]")) {
+            return "IS_AFTER";
+        } else if (key.endsWith("[onOrAfter]")) {
+            return "ON_OR_AFTER";
+        } else if (key.endsWith("[isBefore]")) {
+            return "IS_BEFORE";
+        } else if (key.endsWith("[onOrBefore]")) {
+            return "ON_OR_BEFORE";
         }
-        if (statusCode != null) {
-            logFilter.setStatusCode(statusCode);
-        }
-        if (startDateOperator != null && startDate != null) {
-            switch (startDateOperator) {
-                case IS:
-                    logFilter.setStartDateIs(startDate);
-                    break;
-                case IS_NOT:
-                    logFilter.setStartDateIsNot(startDate);
-                    break;
-                case IS_AFTER:
-                    logFilter.setStartDateIsAfter(startDate);
-                    break;
-                case ON_OR_AFTER:
-                    logFilter.setStartDateOnOrAfter(startDate);
-                    break;
-                case IS_BEFORE:
-                    logFilter.setStartDateIsBefore(startDate);
-                    break;
-                case ON_OR_BEFORE:
-                    logFilter.setStartDateOnOrBefore(startDate);
-                    break;
-            }
-        }
-        if (endDateOperator != null && endDate != null) {
-            switch (endDateOperator) {
-                case IS:
-                    logFilter.setStartDateIs(endDate);
-                    break;
-                case IS_NOT:
-                    logFilter.setStartDateIsNot(endDate);
-                    break;
-                case IS_AFTER:
-                    logFilter.setStartDateIsAfter(endDate);
-                    break;
-                case ON_OR_AFTER:
-                    logFilter.setStartDateOnOrAfter(endDate);
-                    break;
-                case IS_BEFORE:
-                    logFilter.setStartDateIsBefore(endDate);
-                    break;
-                case ON_OR_BEFORE:
-                    logFilter.setStartDateOnOrBefore(endDate);
-                    break;
-            }
-        }
-        return logFilter;
+        return null;
     }
+
     public LogResponse getLogResponse(List<Log> logs, int pageNumber,int pageSize) {
         Pagination pagination = new Pagination();
         pagination.setCurrentPage(pageNumber);

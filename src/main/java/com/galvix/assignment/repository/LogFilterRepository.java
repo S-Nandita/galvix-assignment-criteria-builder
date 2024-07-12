@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,23 +24,25 @@ import java.util.stream.Collectors;
 public class LogFilterRepository {
     private EntityManager entityManager;
 
-    public Page<Log> filterLogs(LogFilter logFilter, Integer pageNumber, Integer pageSize) {
+    public Page<Log> filterLogs(List<LogFilter> filters,int pageNumber, int pageSize) {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Log> criteriaQuery = criteriaBuilder.createQuery(Log.class);
         Root<Log> root = criteriaQuery.from(Log.class);
         List<Predicate> predicates = new ArrayList<>();
 
-        if (logFilter.getServiceNameIs() != null || logFilter.getServiceNameIsNot() != null || logFilter.getServiceNameIsAnyOf() != null) {
-            predicates.add(getServiceNamePredicate(criteriaBuilder, root, logFilter));
-        }
-        if (logFilter.getStatusCode() != null) {
-            predicates.add(getStatusCodePredicate(criteriaBuilder, root, logFilter));
-        }
-        if (hasStartDateFilter(logFilter)) {
-            predicates.add(getStartDatePredicate(criteriaBuilder, root, logFilter));
-        }
-        if (hasEndDateFilter(logFilter)) {
-            predicates.add(getEndDatePredicate(criteriaBuilder, root, logFilter));
+        for (LogFilter logFilter : filters) {
+            if(logFilter.getField().equals("serviceNames")) {
+               predicates.add(getServiceNamePredicate(criteriaBuilder,root,logFilter.getOperator(),(String) logFilter.getValue()));
+            }
+            if (logFilter.getField().equals("statusCode")) {
+                predicates.add(getStatusCodePredicate(criteriaBuilder,root,logFilter.getOperator(),(String) logFilter.getValue()));
+            }
+            if(logFilter.getField().equals("startDate")) {
+                predicates.add(getDatePredicate(criteriaBuilder,root,logFilter.getOperator(),logFilter.getLocalDateValue()));
+            }
+            if(logFilter.getField().equals("endDate")) {
+                predicates.add(getDatePredicate(criteriaBuilder,root,logFilter.getOperator(),logFilter.getLocalDateValue()));
+            }
         }
         Predicate finalPredicate = criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         criteriaQuery.where(finalPredicate);
@@ -49,25 +52,17 @@ public class LogFilterRepository {
         return new PageImpl<>(typedQuery.getResultList());
     }
 
-    private Predicate getServiceNamePredicate(CriteriaBuilder criteriaBuilder, Root root, LogFilter logFilter) {
+    private Predicate getServiceNamePredicate(CriteriaBuilder criteriaBuilder,Root root,String operator, String value) {
         List<Predicate> predicates = new ArrayList<>();
-
-        if (logFilter.getServiceNameIs() != null) {
-            predicates.add(criteriaBuilder.equal(
-                    criteriaBuilder.lower(root.get("serviceName")),
-                    logFilter.getServiceNameIs().toLowerCase()
-            ));
+        if (operator.equals("IS")) {
+            predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("serviceName")),value.toLowerCase()));
         }
-
-        if (logFilter.getServiceNameIsNot() != null) {
-            predicates.add(criteriaBuilder.notEqual(
-                    criteriaBuilder.lower(root.get("serviceName")),
-                    logFilter.getServiceNameIsNot().toLowerCase()
-            ));
+        if(operator.equals("IS_NOT")) {
+            predicates.add(criteriaBuilder.notEqual(criteriaBuilder.lower(root.get("serviceName")),value.toLowerCase()));
         }
-
-        if (logFilter.getServiceNameIsAnyOf() != null && !logFilter.getServiceNameIsAnyOf().isEmpty()) {
-            List<String> lowerCaseServiceNames = logFilter.getServiceNameIsAnyOf().stream()
+        if(operator.equals("IS_ANY_OF")) {
+            List<String> values = Arrays.asList(value.split(","));
+            List<String> lowerCaseServiceNames = values.stream()
                     .map(String::toLowerCase)
                     .collect(Collectors.toList());
             List<Predicate> inPredicates = lowerCaseServiceNames.stream()
@@ -79,106 +74,47 @@ public class LogFilterRepository {
         return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     }
 
-    private Predicate getStatusCodePredicate(CriteriaBuilder criteriaBuilder, Root root, LogFilter logFilter) {
-        return criteriaBuilder.equal(root.get("statusCode"), logFilter.getStatusCode());
+    private Predicate getStatusCodePredicate(CriteriaBuilder criteriaBuilder,Root root,String operator,String value) {
+        return criteriaBuilder.equal(root.get("statusCode"),value);
     }
 
-    private Predicate getStartDatePredicate(CriteriaBuilder criteriaBuilder, Root root, LogFilter logFilter) {
-        if (logFilter.getStartDateIs() != null) {
+    private Predicate getDatePredicate(CriteriaBuilder criteriaBuilder, Root<Log> root, String operator, Object value) {
+        if(operator.equals("IS")) {
             return criteriaBuilder.equal(
                     criteriaBuilder.function("DATE", LocalDate.class, root.get("loggedAt")),
-                    logFilter.getStartDateIs()
+                    value
             );
         }
-        if (logFilter.getStartDateIsNot() != null) {
+        if(operator.equals("IS_NOT")) {
             return criteriaBuilder.notEqual(
-                    criteriaBuilder.function("DATE", LocalDate.class, root.get("loggedAt")),
-                    logFilter.getStartDateIsNot()
+                    criteriaBuilder.function("DATE",LocalDate.class,root.get("loggedAt")),
+                    value
             );
         }
-        if (logFilter.getStartDateIsAfter() != null) {
+        if(operator.equals("IS_AFTER")) {
             return criteriaBuilder.greaterThan(
                     criteriaBuilder.function("DATE", LocalDate.class, root.get("loggedAt")),
-                    logFilter.getStartDateIsAfter()
+                    (LocalDate) value
             );
         }
-        if (logFilter.getStartDateOnOrAfter() != null) {
+        if(operator.equals("ON_OR_AFTER")) {
             return criteriaBuilder.greaterThanOrEqualTo(
                     criteriaBuilder.function("DATE", LocalDate.class, root.get("loggedAt")),
-                    logFilter.getStartDateOnOrAfter()
+                    (LocalDate) value
             );
         }
-        if (logFilter.getStartDateIsBefore() != null) {
+        if(operator.equals("IS_BEFORE")) {
             return criteriaBuilder.lessThan(
                     criteriaBuilder.function("DATE", LocalDate.class, root.get("loggedAt")),
-                    logFilter.getStartDateIsBefore()
+                    (LocalDate) value
             );
         }
-        if (logFilter.getStartDateOnOrBefore() != null) {
+        if(operator.equals("ON_OR_BEFORE")) {
             return criteriaBuilder.lessThanOrEqualTo(
                     criteriaBuilder.function("DATE", LocalDate.class, root.get("loggedAt")),
-                    logFilter.getStartDateOnOrBefore()
+                    (LocalDate) value
             );
         }
         return null;
     }
-
-    private Predicate getEndDatePredicate(CriteriaBuilder criteriaBuilder, Root root, LogFilter logFilter) {
-        if (logFilter.getEndDateIs() != null) {
-            return criteriaBuilder.equal(
-                    criteriaBuilder.function("DATE", LocalDate.class, root.get("loggedAt")),
-                    logFilter.getEndDateIs()
-            );
-        }
-        if (logFilter.getEndDateIsNot() != null) {
-            return criteriaBuilder.notEqual(
-                    criteriaBuilder.function("DATE", LocalDate.class, root.get("loggedAt")),
-                    logFilter.getEndDateIsNot()
-            );
-        }
-        if (logFilter.getEndDateIsAfter() != null) {
-            return criteriaBuilder.greaterThan(
-                    criteriaBuilder.function("DATE", LocalDate.class, root.get("loggedAt")),
-                    logFilter.getEndDateIsAfter()
-            );
-        }
-        if (logFilter.getEndDateOnOrAfter() != null) {
-            return criteriaBuilder.greaterThanOrEqualTo(
-                    criteriaBuilder.function("DATE", LocalDate.class, root.get("loggedAt")),
-                    logFilter.getEndDateOnOrAfter()
-            );
-        }
-        if (logFilter.getEndDateIsBefore() != null) {
-            return criteriaBuilder.lessThan(
-                    criteriaBuilder.function("DATE", LocalDate.class, root.get("loggedAt")),
-                    logFilter.getEndDateIsBefore()
-            );
-        }
-        if (logFilter.getEndDateOnOrBefore() != null) {
-            return criteriaBuilder.lessThanOrEqualTo(
-                    criteriaBuilder.function("DATE", LocalDate.class, root.get("loggedAt")),
-                    logFilter.getEndDateOnOrBefore()
-            );
-        }
-        return null;
-    }
-
-    private boolean hasStartDateFilter(LogFilter logFilter) {
-        return logFilter.getStartDateIs() != null ||
-                logFilter.getStartDateIsNot() != null ||
-                logFilter.getStartDateIsAfter() != null ||
-                logFilter.getStartDateOnOrAfter() != null ||
-                logFilter.getStartDateIsBefore() != null ||
-                logFilter.getStartDateOnOrBefore() != null;
-    }
-
-    private boolean hasEndDateFilter(LogFilter logFilter) {
-        return logFilter.getEndDateIs() != null ||
-                logFilter.getEndDateIsNot() != null ||
-                logFilter.getEndDateIsAfter() != null ||
-                logFilter.getEndDateOnOrAfter() != null ||
-                logFilter.getEndDateIsBefore() != null ||
-                logFilter.getEndDateOnOrBefore() != null;
-    }
-
 }
