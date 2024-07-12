@@ -26,17 +26,17 @@ public class LogServiceImpl implements LogService {
         queryParams.forEach((key,value)-> {
             String operator = getOperatorFomKey(key);
 
-            if(key.startsWith("serviceNames")) {
+            if(key.toLowerCase().startsWith("servicenames")) {
                 filters.add(new LogFilter("serviceNames",operator,value));
-            } else if(key.equals("statusCode")) {
+            } else if(key.toLowerCase().equals("statuscode")) {
                 filters.add(new LogFilter("statusCode",operator,value));
-            } else if (key.startsWith("startDate")) {
+            } else if (key.toLowerCase().startsWith("startdate")) {
                 filters.add(new LogFilter("startDate",operator,value));
-            } else if (key.startsWith("endDate")) {
+            } else if (key.toLowerCase().startsWith("enddate")) {
                 filters.add(new LogFilter("endDate",operator,value));
-            } else if (key.startsWith("pageNumber")) {
+            } else if (key.toLowerCase().startsWith("pagenumber")) {
                 pageNumber.set(Integer.parseInt(value));
-            } else if (key.startsWith("pageSize")) {
+            } else if (key.toLowerCase().startsWith("pagesize")) {
                 pageSize.set(Integer.parseInt(value));
             }
         });
